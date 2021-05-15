@@ -1,0 +1,21 @@
+﻿(*
+	This script contains handlers around the orion PPR component
+*)
+
+(** PUBLIC **)
+
+(**
+	Handler: 
+		ORNPPR.getHarnessPPRURL
+	Description: 
+		Constructs the PPR URL for the given person and endpoint
+	Parameters: 
+               endpoint - Text, the base URL (harness URL)
+               personID - Text, the unique identifier of the person	 
+	Returns: 
+		Returns the PPR URL for the given person and endpoint
+**)
+to getHarnessPPRURL endpoint, personID
+	return endpoint & "/patients/" & personID & "/orion_ppr"
+end getHarnessPPRURL
+

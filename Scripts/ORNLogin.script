@@ -1,0 +1,147 @@
+﻿(*
+	This script contains handlers for Login for Orion components (harnesses) and for Millennium plus log in screen
+*)
+
+(** PUBLIC **)
+
+(**
+	Handler: 
+		ORNLogin.orionComponentFullLogin (username, password)
+	Description: 
+		Select the Login button on the Orion Component page.  That navigates to the Millennium+ login
+		Enters credentials into Millennium+ login page.
+	Parameters:
+		username - Username you wish to use for testing. 
+		password - Password that corresponds with the specified username being used.
+	Returns: 
+		n/a 
+**)
+to orionComponentFullLogin (username, password)
+	ORNLogin.clickHarnessComponentLogin
+	ORNLogin.millenniumPlusLogin username, password
+end orionComponentFullLogin
+
+(**
+	Handler: 
+		ORNLogin.millenniumPlusLogin (username, password)
+	Description: 
+		Log in to millennium+ using provided parameters.  Domain is pre-populated based on url that is used
+		No SearchRectangle currently as this can be used by desktop and mobile devices
+		Assumes no previous data was saved such as username
+	Parameters:
+		username - Username you wish to use for testing. 
+		password - Password that corresponds with the specified username being used.
+	Returns: 
+		n/a
+**)
+to millenniumPlusLogin username, password
+	Log "Attempting to log into Millennium plus with user" && username
+	
+	// Check if parameters were passed in
+	if (username is empty) or (password is empty)
+		throw (Name: "ORNLogin.millenniumPlusLogin exception", reason: "Username or password parameters are empty")
+	end if
+	
+	// Waiting for Login page to be displayed 
+	Waitfor 60 seconds,  (image: "ORNMillennium_Plus/Button_Log_in"), (text: "Log In", caseSensitive: Y, searchRectangle: ORNScreen.center)
+	
+	// Enter the username, password and select log in
+	TypeText username // selected by default on page load
+	TypeText tabKey
+	TypeText password
+	TypeText returnKey
+	
+	// Allow for user to be logged in
+	Set the scriptlogging to Off
+	Repeat for 60 seconds
+		if ImageFound(image: "DSKBrowser/Button_Refresh")
+			set pageDismissed to true
+			Log "Millennium plus log in page has been dismissed. "
+			exit repeat
+		end if	
+	End repeat
+	Set the scriptlogging to On
+	
+	if pageDismissed is not true
+		Throw  (Name: "ORNLogin.millenniumPlusLogin exception", reason: "Log in page was not dismissed after 60 seconds")
+	end if
+	
+	if ImageFound (text:"Domain Offline",  searchRectangle: ORNScreen.scale (.2, .1, .8, .5))
+		Throw  (Name: "ORNLogin.millenniumPlusLogin exception", reason: "Domain is reporting it is offline")
+	end if
+end millenniumPlusLogin
+
+(**
+	Handler: 
+		ORNLogin.millenniumPlusEnterUsername (username)
+	Description: 
+		Enter username on Millennium plus log in page.
+	Parameters:
+		username - Username you wish to use for testing. 
+	Returns: 
+		n/a
+**)
+to millenniumPlusEnterUsername username
+	If ImageFound(text: "Username", searchRectangle: ORNScreen.scale (.25, .1, .75, .6))
+		Click FoundImageLocation() 	
+		TypeText username
+	else
+		throw (Name: "ORNLogin.millenniumPlusEnterUsername exception", reason: "Unable to find username field")
+	end If
+end millenniumPlusEnterUsername
+
+(**
+	Handler: 
+		ORNLogin.millenniumPlusEnterPassword (password)
+	Description: 
+		Enter password on Millennium plus log in page. 
+	Parameters:
+         	password - Password that corresponds with the specified username being used.
+	Returns: 
+		n/a
+**)
+to millenniumPlusEnterPassword password
+	If ImageFound(text: "Password", searchRectangle: ORNScreen.scale (.25, .1, .75, .6))
+		Click FoundImageLocation() 	
+		TypeText password
+	else
+		throw (Name: "ORNLogin.millenniumPlusEnterPassword exception", reason: "Unable to find password field")
+	end If
+end millenniumPlusEnterPassword
+
+(**
+	Handler: 
+		ORNLogin.millenniumPlusSelectLoginButton
+	Description: 
+		Click the log in button on Millennium plus log in page.  
+	Parameters: 
+		n/a 
+	Returns: 
+		n/a
+**)
+to millenniumPlusSelectLoginButton
+	If ImageFound(image: "ORNMillennium_Plus/Button_Log_in") or if ImageFound(text: "Log In", caseSensitive: Y, searchRectangle: ORNScreen.center)
+		Click FoundImageLocation() 	
+	else
+		throw (Name: "ORNLogin.millenniumPlusSelectLoginButton exception", reason: "Unable to find Log in button")
+	end If
+end millenniumPlusSelectLoginButton
+
+(**
+	Handler: 
+		ORNLogin.clickHarnessComponentLogin
+	Description: 
+		Click the log in option for an Orion Component.  
+	Parameters: 
+		n/a 
+	Returns: 
+		n/a
+**)	
+to clickHarnessComponentLogin
+	WaitFor 60, image: "ORNHarness/Text_NotLoggedIN", text: "Not Logged in", SearchRectangle: ORNScreen.scale (.25, .1, .75, .6)
+	If ImageFound("ORNHarness/Button_Login") or if ImageFound (text:"Login", ignoreSpaces: No, SearchRectangle: ORNScreen.scale (.25, .1, .75, .6))
+		Click FoundImageLocation()
+	else
+		throw (Name: "ORNLogin.clickHarnessComponentLogin exception", reason: "Unable to find Log in button")
+	end if
+end clickHarnessComponentLogin	
